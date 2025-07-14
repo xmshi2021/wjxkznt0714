@@ -1,0 +1,21 @@
+{
+  "name": "wa_7_0712_cc_trae",
+  "version": "1.0.0",
+  "description": "一个完全集成真实API的AI文案改写Web应用，支持飞书数据管理和Coze AI文案处理。",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build:css": "tailwindcss -i ./src/style.css -o ./dist/style.css --minify"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.5",
+    "node-fetch": "^2.7.0"
+  }
+}

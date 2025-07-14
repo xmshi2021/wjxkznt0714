@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无尽星空智能体</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+     <!--<link href="/src/style.css" rel="stylesheet">-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='90' font-size='90'>🔒</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+            position: absolute;
+            left: 70px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1f2937;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+        .tooltip-text::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -5px;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: #1f2937;
+        }
+        .notification {
+            position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 1000;
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+        .success { background-color: #10b981; }
+        .error { background-color: #ef4444; }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* 暗色主题样式 */
+        .dark-mode {
+            --bg-color: hsl(240, 35%, 7%);          /* 更深的基础背景，打底更沉稳 */
+            --card-bg: hsl(220, 47%, 12%);           /* 卡片背景，比基础背景亮 1 - 2 度，区分层次 */
+            --text-color: #f0f4f8;        /* 高亮度文字，和深色背景拉开差，更清晰 */
+            --border-color: hsl(228, 33%, 19%);      /* 边框用偏紫灰，比卡片稍亮，弱化但能区分边界 */
+            /* --bg-color: #1a1a2e;--card-bg: #212134;--text-color: #e2e8f0;--border-color: #383850;*/
+        }
+
+        .dark-mode body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .dark-mode .bg-white {
+            background-color: var(--card-bg);
+        }
+
+        .dark-mode .text-gray-800 {
+            color: var(--text-color);
+        }
+
+        .dark-mode .text-gray-600 {
+            color: hsl(214, 20%, 69%);
+        }
+
+        .dark-mode .border-gray-200 {
+            border-color: var(--border-color);
+        }
+
+        .dark-mode .bg-gray-50 {
+            background-color: hsl(240, 35%, 7%);
+        }
+
+        .dark-mode input,
+        .dark-mode textarea,
+        .dark-mode select {
+            background-color: hsl(220, 20%, 22%);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+    </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+    <!-- 登录页面 -->
+    <!--<div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">-->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style="background-image: url('bg.webp')">
+
+        <!--<div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md animate-fade-in">-->
+        <div class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-8 rounded-xl shadow-2xl w-full max-w-md animate-fade-in">
+            <div class="text-center mb-8">
+                <!--<div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">-->
+                    <!--<i class="fas fa-rocket text-blue-600 text-2xl"></i>-->
+                <!--</div>-->
+                <h1 class="text-2xl font-bold text-gray-800">无尽星空智能体</h1>
+                <p class="text-gray-600 mt-2">请使用您的账号登录</p>
+            </div>
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">登录名</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="username" autocomplete="off" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="请输入登录名" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="password" autocomplete="off" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="请输入密码" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <i class="fas fa-sign-in-alt mr-2"></i>登录
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 主应用页面 -->
+    <div id="mainApp" class="hidden min-h-screen bg-gray-50">
+        <!-- 顶部状态栏 -->
+        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 fixed top-0 left-0 right-0 z-30">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-blue-100 w-10 h-10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-blue-600"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-gray-800">无尽星空智能体</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <i class="fas fa-clock text-blue-500"></i>
+                        <span>令牌有效期至</span>
+                        <span id="tokenExpiry" class="font-medium text-blue-600">2024-12-31</span>
+                        <span>，还剩</span>
+                        <span id="tokenDays" class="font-medium text-orange-500">30</span>
+                        <span>天</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-medium" id="userAvatar">U</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700" id="currentUser">用户</span>
+                         <!-- 添加退出登录按钮 -->
+                        <button id="logoutBtn" class="ml-4 text-gray-600 hover:text-red-500 transition-colors">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex h-screen pt-20">
+            <!-- 侧边导航栏 -->
+            <nav class="w-16 bg-white shadow-lg border-r border-gray-200 fixed left-0 top-20 bottom-0 z-10">
+                <div class="flex flex-col items-center py-6 space-y-4">
+                    <div class="tooltip">
+                        <button id="promptsTab" class="nav-btn w-12 h-12 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200 transition-colors flex items-center justify-center active">
+                            <i class="fas fa-brain text-lg"></i>
+                        </button>
+                        <span class="tooltip-text">提示词</span>
+                    </div>
+                    <div class="tooltip">
+                        <button id="agentTab" class="nav-btn w-12 h-12 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <i class="fas fa-robot text-lg"></i>
+                        </button>
+                        <span class="tooltip-text">智能体</span>
+                    </div>
+                    <div class="tooltip">
+                        <button id="settingsTab" class="nav-btn w-12 h-12 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <i class="fas fa-cog text-lg"></i>
+                        </button>
+                        <span class="tooltip-text">设置</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- 主内容区域 -->
+            <main class="flex-1 ml-16 p-6 pt-10">
+                <!-- 提示词页面 -->
+                <div id="promptsPage" class="page-content">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800">智能体配置（提示词管理）</h2>
+                                <p class="text-gray-600 mt-1">点击智能体进入工作台</p>
+                            </div>
+                            <button id="addPromptBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                                <i class="fas fa-plus"></i>
+                                <span>新增提示词</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="promptsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- 提示词卡片将在这里动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 智能体页面 -->
+                <div id="agentPage" class="page-content hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">智能体工作台</h2>
+                        <p class="text-gray-600 mt-1">选择智能体和模型，输入文本进行改写</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                        <!-- 输入区域 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-edit text-blue-500 mr-2"></i>
+                                输入参数
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">选择智能体</label>
+                                    <select id="agentSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">请选择智能体</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">选择模型</label>
+                                    <select id="modelSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="db">豆包</option>
+                                        <option value="km">Kimi</option>
+                                        <option value="ds">DeepSeek</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">输入文本</label>
+                                    <textarea id="inputText" rows="10" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="请输入需要改写的文本内容..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-3 mt-6">
+                                <button id="runBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-play mr-2"></i>开始运行
+                                </button>
+                                <button id="clearBtn" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                                    <i class="fas fa-eraser mr-2"></i>清空
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 输出区域 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-file-alt text-green-500 mr-2"></i>
+                                输出结果
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">改写结果</label>
+                                    <div id="outputText" class="w-full h-64 p-3 border border-gray-300 rounded-lg bg-gray-50 overflow-y-auto text-sm leading-relaxed">
+                                        <div class="flex items-center justify-center h-full text-gray-400">
+                                            <i class="fas fa-robot text-2xl mr-3"></i>
+                                            <span>等待输入内容...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">消耗统计</label>
+                                    <div id="tokenInfo" class="p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
+                                        <i class="fas fa-coins mr-2"></i>
+                                        <span>本次输出消耗Token，大约是0.00元</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-3 mt-6">
+                                <button id="saveLocalBtn" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>保存到本地
+                                </button>
+                                <button id="saveSheetBtn" class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+                                    <i class="fas fa-table mr-2"></i>保存到表格
+                                </button>
+                                <button id="copyBtn" class="px-6 bg-orange-500 text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-copy mr-2"></i>复制
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 设置页面 -->
+                <div id="settingsPage" class="page-content hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">系统设置</h2>
+                        <p class="text-gray-600 mt-1">配置API参数和系统选项</p>
+                    </div>
+                    
+                    <div class="max-w-2xl space-y-6">
+                        <!-- 现有API配置区块 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-key text-blue-500 mr-2"></i>
+                                API配置
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">访问令牌</label>
+                                    <input type="password" id="accessToken" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="pat_xxxxxxxxxxxxx" readonly>                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">有效期</label>
+                                    <input type="text" id="tokenExpiration" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50" readonly>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">工作流ID</label>
+                                    <select id="workflowSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">请选择工作流</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-database text-green-500 mr-2"></i>
+                                数据配置
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">保存到表格</label>
+                                    <input type="url" id="saveSheetUrl" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="https://bmy4tfqyf1.feishu.cn/sheets/QZPIsqiOOhZ4BNtI0bjcYfnbnh5?sheet=340c75">
+                                    <p class="text-xs text-gray-500 mt-1">请检查路径片段包含 /sheets/ 而非 /wiki/，如需更换有写入权限的空白新表（需配智能体应用），请联系管理员。 </p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <button id="saveSettingsBtn" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-save mr-2"></i>保存设置
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 新增主题设置区块 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-moon text-indigo-500 mr-2"></i>
+                                外观设置
+                            </h3>
+                            
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">主题模式</label>
+                                    <p class="text-xs text-gray-500 mt-1">切换应用的亮色/暗色显示模式</p>
+                                </div>
+                                <div class="relative inline-block w-14 h-8 flex-shrink-0 select-none transition duration-200 ease-in">
+                                    <input type="checkbox" id="themeToggle" class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in transform translate-x-0 checked:translate-x-6 checked:right-6 checked:border-blue-400"/>
+                                    <label for="themeToggle" class="toggle-label block overflow-hidden h-8 rounded-full bg-gray-300 checked:bg-blue-600 cursor-pointer"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 模态框：新增/编辑提示词 -->
+    <div id="promptModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl m-4 animate-slide-up">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="modalTitle">新增提示词</h3>
+            </div>
+            <div class="p-6">
+                <form id="promptForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">智能体名称</label>
+                        <input type="text" id="promptName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="请输入智能体名称" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">系统提示词</label>
+                        <textarea id="promptContent" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="请输入系统提示词内容..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                <button id="cancelModalBtn" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+                <button id="confirmModalBtn" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-gray-700">正在生成，请稍后...</p>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
