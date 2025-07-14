@@ -129,7 +129,8 @@ class AIRewriteApp {
             //const response = await fetch(`${API_BASE_URL}/open-apis/auth/v3/tenant_access_token/internal`, {
             //const response = await fetch( 'https://feishu-api-proxy.shixianmu.workers.dev/feishu-api',{
             //const response = await fetch('/feishu-api/open-apis/auth/v3/tenant_access_token/internal', {
-            const response = await fetch('/feishu-api/open-apis/auth/v3/tenant_access_token/internal', {
+            //本地用const response = await fetch('/feishu-api/open-apis/auth/v3/tenant_access_token/internal', {
+            const response = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
             //const response = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
             //const response = await fetch(`${this.feishuConfig.baseUrl}/auth/v3/tenant_access_token/internal`, {
             //mode: 'cors', // 明确设置CORS模式
